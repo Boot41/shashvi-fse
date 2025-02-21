@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: django_db
+      POSTGRES_USER: shashvi  # Replace with your PostgreSQL username
+      POSTGRES_PASSWORD: shashvi  # Replace with your PostgreSQL password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ../client/project  # Ensure this path points to the correct location
+    ports:
+      - "3000:3000"  # Ensure frontend runs on port 3000
+
+volumes:
+  postgres_data:

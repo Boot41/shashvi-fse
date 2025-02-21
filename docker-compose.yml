@@ -42,17 +42,10 @@ services:
       - app_network
 
   frontend:
-    build: ./client
-    container_name: react_frontend
-    volumes:
-      - ./client:/app:delegated
-      - /app/node_modules
+    build:
+      context: ./client/project  # Ensure this path points to the correct location
     ports:
-      - "5173:5173"
-    environment:
-      - NODE_ENV=development
-    depends_on:
-      - backend
+      - "3000:3000"  # Ensure frontend runs on port 3000
     networks:
       - app_network
 
