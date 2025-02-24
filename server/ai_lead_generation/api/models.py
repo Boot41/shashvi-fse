@@ -75,10 +75,10 @@ class Lead(models.Model):
     
     # Scoring
     lead_score = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
         null=True,
         blank=True,
-        help_text="Lead score from 1-100"
+        help_text="Lead score from 0-100"
     )
     
     # Hiring Information
@@ -98,6 +98,7 @@ class Lead(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_contacted = models.DateTimeField(null=True, blank=True)
+    last_contact_date = models.DateTimeField(null=True, blank=True, help_text="Date when the lead was last contacted")
     
     # Status
     STATUS_CHOICES = [
@@ -122,7 +123,7 @@ class Lead(models.Model):
     )
 
     def __str__(self):
-        return f"{self.name} - {self.company} ({self.lead_score})"
+        return f"{self.name} - {self.company}"
 
     class Meta:
         ordering = ['-lead_score', '-created_at']
@@ -135,6 +136,47 @@ class Lead(models.Model):
             return json.dumps(self.metadata, indent=2)
         except:
             return str(self.metadata)
+
+    def calculate_lead_score(self):
+        """Calculate lead score based on various factors"""
+        score = 0
+        
+        # Company size score (max 30 points)
+        try:
+            size = int(self.company_size)
+            if size > 1000:
+                score += 30
+            elif size > 500:
+                score += 20
+            elif size > 100:
+                score += 10
+        except (ValueError, TypeError):
+            pass
+        
+        # Funding amount score (max 40 points)
+        if self.funding_amount:
+            funding = float(self.funding_amount)
+            if funding > 10000000:  # > 10M
+                score += 40
+            elif funding > 5000000:  # > 5M
+                score += 30
+            elif funding > 1000000:  # > 1M
+                score += 20
+            elif funding > 500000:  # > 500K
+                score += 10
+        
+        # Industry score (max 30 points)
+        tech_industries = ['tech', 'technology', 'software', 'it', 'saas']
+        if self.industry and self.industry.lower() in tech_industries:
+            score += 30
+        
+        # Ensure score is between 0 and 100
+        return max(0, min(100, score))
+
+    def save(self, *args, **kwargs):
+        if self.lead_score is None:
+            self.lead_score = self.calculate_lead_score()
+        super().save(*args, **kwargs)
 
 class LeadMessage(models.Model):
     lead = models.ForeignKey(

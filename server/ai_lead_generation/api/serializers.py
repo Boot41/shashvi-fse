@@ -1,36 +1,27 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
+from .models import Lead, Outreach
 
 User = get_user_model()
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password', 'role']
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        user = User(**validated_data)
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
-
-class UserLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField()
-
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'password')
-        
+        extra_kwargs = {'password': {'write_only': True}}
+
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
+        user = User.objects.create_user(**validated_data)
         return user
+
+class LeadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields = '__all__'
+        read_only_fields = ('created_by', 'created_at', 'updated_at', 'lead_score')
+
+class OutreachSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Outreach
+        fields = '__all__'
+        read_only_fields = ('generated_at',)
