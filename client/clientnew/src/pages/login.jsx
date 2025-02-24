@@ -2,31 +2,18 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { BrainCircuit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '../lib/AuthContext';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-
-    const formData = new FormData(e.target);
-    const email = formData.get('email');
-    const password = formData.get('password');
-
-    try {
-      await login({ email, password });
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to login. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    // Simulate login delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    navigate('/dashboard');
   };
 
   return (
@@ -45,12 +32,6 @@ export function LoginPage() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="text-sm text-red-700">{error}</div>
-            </div>
-          )}
-          
           <div className="-space-y-px rounded-md shadow-sm">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -82,27 +63,53 @@ export function LoginPage() {
             </div>
           </div>
 
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600 dark:border-gray-700 dark:bg-gray-800"
+              />
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
+              >
+                Remember me
+              </label>
+            </div>
+
+            <div className="text-sm">
+              <a
+                href="#"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Forgot your password?
+              </a>
+            </div>
+          </div>
+
           <div>
             <Button
               type="submit"
-              className="group relative flex w-full justify-center"
-              disabled={isLoading}
+              className="w-full"
+              size="lg"
+              isLoading={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              Sign in
             </Button>
           </div>
-
-          <div className="flex items-center justify-center">
-            <div className="text-sm">
-              <Link
-                to="/register"
-                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Don't have an account? Sign up
-              </Link>
-            </div>
-          </div>
         </form>
+
+        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          Don't have an account?{' '}
+          <Link
+            to="/register"
+            className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+          >
+            Sign up now
+          </Link>
+        </p>
       </div>
     </div>
   );

@@ -2,11 +2,9 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { BrainCircuit, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '../lib/AuthContext';
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -15,7 +13,6 @@ export function RegisterPage() {
     confirmPassword: '',
   });
   const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState('');
 
   const validateForm = () => {
     const newErrors = {};
@@ -64,17 +61,14 @@ export function RegisterPage() {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    setApiError('');
-
     try {
-      await register({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      navigate('/dashboard');
+    } catch (error) {
+      setErrors({
+        submit: 'Registration failed. Please try again.',
       });
-      navigate('/login', { state: { message: 'Registration successful! Please login.' } });
-    } catch (err) {
-      setApiError(err.response?.data?.detail || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -96,16 +90,10 @@ export function RegisterPage() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {apiError && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <AlertCircle className="h-5 w-5 text-red-400" />
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-700">{apiError}</p>
-                </div>
-              </div>
+          {errors.submit && (
+            <div className="flex items-center gap-2 rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-900/50 dark:text-red-200">
+              <AlertCircle className="h-4 w-4" />
+              {errors.submit}
             </div>
           )}
 
@@ -121,12 +109,14 @@ export function RegisterPage() {
                 id="username"
                 name="username"
                 type="text"
+                required
                 value={formData.username}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:placeholder:text-gray-500 sm:text-sm sm:leading-6"
+                placeholder="Enter your username"
               />
               {errors.username && (
-                <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.username}</p>
               )}
             </div>
 
@@ -141,12 +131,14 @@ export function RegisterPage() {
                 id="email"
                 name="email"
                 type="email"
+                required
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:placeholder:text-gray-500 sm:text-sm sm:leading-6"
+                placeholder="Enter your email"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
               )}
             </div>
 
@@ -161,12 +153,14 @@ export function RegisterPage() {
                 id="password"
                 name="password"
                 type="password"
+                required
                 value={formData.password}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:placeholder:text-gray-500 sm:text-sm sm:leading-6"
+                placeholder="Enter your password"
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.password}</p>
               )}
             </div>
 
@@ -181,12 +175,14 @@ export function RegisterPage() {
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
+                required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:placeholder:text-gray-500 sm:text-sm sm:leading-6"
+                placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-red-500">
                   {errors.confirmPassword}
                 </p>
               )}
@@ -196,24 +192,24 @@ export function RegisterPage() {
           <div>
             <Button
               type="submit"
-              className="group relative flex w-full justify-center"
-              disabled={isLoading}
+              className="w-full"
+              size="lg"
+              isLoading={isLoading}
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              Create Account
             </Button>
           </div>
-
-          <div className="flex items-center justify-center">
-            <div className="text-sm">
-              <Link
-                to="/login"
-                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Already have an account? Sign in
-              </Link>
-            </div>
-          </div>
         </form>
+
+        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+          >
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );
