@@ -38,6 +38,7 @@ class Company(models.Model):
     location = models.CharField(max_length=255)
     linkedin_profile = models.URLField(blank=True)
     website = models.URLField(blank=True, null=True, help_text="Company website URL")
+    about = models.TextField(blank=True, help_text="Description of the company")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -147,3 +148,17 @@ class LeadMessage(models.Model):
     
     def __str__(self):
         return f"Messages for {self.lead.name}"
+
+class Outreach(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='outreach_emails', null=True)
+    email_content = models.TextField()
+    linkedin_content = models.TextField(blank=True, help_text="LinkedIn message content")
+    generated_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
+    is_linkedin_approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Outreach for {self.lead.company if self.lead else 'Unknown'} - {self.generated_at.strftime('%Y-%m-%d %H:%M')}"
+
+    class Meta:
+        ordering = ['-generated_at']
