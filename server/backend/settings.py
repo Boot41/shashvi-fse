@@ -132,11 +132,38 @@ STATIC_URL = 'static/'
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite default port
+    "http://localhost:5173",  # Vite default development server
     "http://127.0.0.1:5173",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# If you want to allow all headers, you can use:
+# CORS_ALLOW_ALL_HEADERS = True
+
+# Optionally, you can specify which URLs should allow CORS
+CORS_URLS_REGEX = r'^/api/.*$'
 
 # REST Framework settings
 REST_FRAMEWORK = {

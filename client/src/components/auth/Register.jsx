@@ -24,12 +24,24 @@ const Register = () => {
   };
 
   const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+    if (!formData.username.trim()) {
+      setError('Username is required');
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setError('Email is required');
+      return false;
+    }
+    if (!formData.email.includes('@')) {
+      setError('Please enter a valid email address');
       return false;
     }
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters long');
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
       return false;
     }
     return true;
@@ -43,19 +55,23 @@ const Register = () => {
     setLoading(true);
     setError('');
 
-    const result = await register(
-      formData.username,
-      formData.email,
-      formData.password
-    );
+    try {
+      const result = await register(
+        formData.username,
+        formData.email,
+        formData.password
+      );
 
-    if (result.success) {
-      navigate('/dashboard');
-    } else {
-      setError(result.error);
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.error);
+      }
+    } catch (error) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -68,7 +84,7 @@ const Register = () => {
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
             <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              sign in to your account
+              sign in to your existing account
             </Link>
           </p>
         </div>
@@ -92,6 +108,7 @@ const Register = () => {
                 placeholder="Username"
                 value={formData.username}
                 onChange={handleChange}
+                disabled={loading}
               />
             </div>
             <div>
@@ -105,6 +122,7 @@ const Register = () => {
                 placeholder="Email address"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={loading}
               />
             </div>
             <div>
@@ -118,6 +136,7 @@ const Register = () => {
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
+                disabled={loading}
               />
             </div>
             <div>
@@ -131,6 +150,7 @@ const Register = () => {
                 placeholder="Confirm password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                disabled={loading}
               />
             </div>
           </div>
@@ -138,8 +158,8 @@ const Register = () => {
           <div>
             <button
               type="submit"
-              disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={loading}
             >
               {loading ? (
                 <span className="absolute left-0 inset-y-0 flex items-center pl-3">

@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import { authService } from '../services';
 
 const AuthContext = createContext(null);
 
@@ -11,26 +11,24 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem('accessToken');
-    if (token) {
+    if (authService.isAuthenticated()) {
       const userData = JSON.parse(localStorage.getItem('user'));
       setUser(userData);
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password, rememberMe) => {
+  const login = async (username, password, rememberMe) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/login/', {
-        email,
-        password
-      });
-
-      const { user: userData, tokens } = response.data;
+      const response = await authService.login(username, password);
+      
+      // Extract user data from token payload
+      const userData = {
+        id: response.user_id,
+        username
+      };
       
       setUser(userData);
-      localStorage.setItem('accessToken', tokens.access);
-      localStorage.setItem('refreshToken', tokens.refresh);
       
       if (rememberMe) {
         localStorage.setItem('user', JSON.stringify(userData));
@@ -40,50 +38,40 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || 'An error occurred during login'
+        error: error.message || 'An error occurred during login'
       };
     }
   };
 
   const register = async (username, email, password) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/register/', {
+      const userData = await authService.register({
         username,
         email,
         password
       });
-
-      const { user: userData, tokens } = response.data;
       
-      setUser(userData);
-      localStorage.setItem('accessToken', tokens.access);
-      localStorage.setItem('refreshToken', tokens.refresh);
-      localStorage.setItem('user', JSON.stringify(userData));
+      // After successful registration, login the user
+      await login(username, password, true);
 
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || 'An error occurred during registration'
+        error: error.message || 'An error occurred during registration'
       };
     }
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   };
 
   const refreshToken = async () => {
     try {
-      const refresh = localStorage.getItem('refreshToken');
-      const response = await axios.post('http://127.0.0.1:8000/api/token/refresh/', {
-        refresh_token: refresh
-      });
-
-      localStorage.setItem('accessToken', response.data.access);
+      await authService.refreshToken();
       return true;
     } catch (error) {
       logout();
@@ -97,7 +85,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    refreshToken
+    refreshToken,
+    isAuthenticated: authService.isAuthenticated
   };
 
   return (
