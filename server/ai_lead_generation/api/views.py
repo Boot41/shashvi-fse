@@ -21,11 +21,14 @@ class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = []  # Allow anyone to register
 
-class LeadViewSet(viewsets.ModelViewSet):
+class LeadListCreateView(generics.ListCreateAPIView):
     queryset = Lead.objects.all()
     serializer_class = LeadSerializer
     permission_classes = [IsAuthenticated]
-
+    
+    def get_queryset(self):
+        return Lead.objects.filter(created_by=self.request.user)
+    
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -33,6 +36,9 @@ class LeadDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Lead.objects.all()
     serializer_class = LeadSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Lead.objects.filter(created_by=self.request.user)
 
 class ImportLeadsView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -48,7 +54,12 @@ class ImportLeadsView(APIView):
 
         try:
             decoded_file = csv_file.read().decode('utf-8')
-            csv_data = csv.DictReader(io.StringIO(decoded_file))
+            csv_data = list(csv.DictReader(io.StringIO(decoded_file)))
+            
+            # Check if CSV is empty (only headers)
+            if not csv_data:
+                return Response({'error': 'CSV file is empty'}, status=status.HTTP_400_BAD_REQUEST)
+            
             service = LeadAutomationService()
             result = service.import_leads_from_csv(csv_data, request.user)
             return Response(result, status=status.HTTP_201_CREATED)
@@ -58,25 +69,31 @@ class ImportLeadsView(APIView):
 
 class ProcessLeadsView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def post(self, request, *args, **kwargs):
         try:
             service = LeadAutomationService()
-            status_filter = request.query_params.get('status')
-            industry_filter = request.query_params.get('industry')
-
-            # Build filter dictionary
             filters = {}
-            if status_filter:
-                filters['status'] = status_filter
-            if industry_filter:
-                filters['industry'] = industry_filter
-
-            result = service.process_all_leads(filters=filters)
+            
+            # Extract filters from query params
+            status = request.query_params.get('status')
+            industry = request.query_params.get('industry')
+            
+            if status:
+                filters['status'] = status
+            if industry:
+                filters['industry'] = industry
+                
+            result = service.process_all_leads(filters)
             return Response(result, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"Error processing leads: {str(e)}")
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'An error occurred while processing leads'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class GenerateMessagesView(APIView):
     permission_classes = [IsAuthenticated]

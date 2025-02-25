@@ -1,8 +1,10 @@
+import logging
 from django.utils import timezone
 from .models import Lead
+from .scoring import LeadScorer
+from .message_generator import MessageGenerator, generate_messages
 import csv
 import io
-import logging
 import random
 
 logger = logging.getLogger(__name__)
@@ -92,41 +94,42 @@ class LeadAutomationService:
             logger.error(f"Error reading CSV file: {str(e)}")
             raise
 
+    def score_lead(self, lead):
+        """Calculate lead score using LeadScorer"""
+        scorer = LeadScorer()
+        return scorer.calculate_total_score(lead)
+
     def process_all_leads(self, filters=None):
-        """Process all leads, optionally filtered by status and industry"""
-        total_processed = 0
-        successful = 0
-        failed = 0
-
+        """Process all leads with optional filters"""
         try:
-            logger.info("Starting process_all_leads")
             leads = Lead.objects.all()
+            
             if filters:
+                # Validate filters
+                valid_filters = {'status', 'industry', 'company_size', 'funding_amount'}
+                invalid_filters = set(filters.keys()) - valid_filters
+                if invalid_filters:
+                    raise ValueError(f"Invalid filters: {', '.join(invalid_filters)}")
+                
                 leads = leads.filter(**filters)
-
+            
+            results = []
             for lead in leads:
-                try:
-                    logger.info(f"Processing lead {lead.id}")
-                    # Calculate lead score
-                    lead.calculate_lead_score()
-                    
-                    # Update last contact date
-                    lead.last_contact_date = timezone.now()
-                    lead.save()
-                    
-                    successful += 1
-                    logger.info(f"Successfully processed lead {lead.id}")
-                except Exception as e:
-                    logger.error(f"Error processing lead {lead.id}: {str(e)}")
-                    failed += 1
-                total_processed += 1
-
-            logger.info(f"Completed process_all_leads. Total: {total_processed}, Successful: {successful}, Failed: {failed}")
+                lead_data = {
+                    'id': lead.id,
+                    'name': lead.name,
+                    'company': lead.company,
+                    'industry': lead.industry,
+                    'status': lead.status,
+                    'score': self.score_lead(lead)
+                }
+                results.append(lead_data)
+            
             return {
-                'total_processed': total_processed,
-                'successful': successful,
-                'failed': failed
+                'total_processed': len(results),
+                'processed': results
             }
+            
         except Exception as e:
             logger.error(f"Error in process_all_leads: {str(e)}")
             raise

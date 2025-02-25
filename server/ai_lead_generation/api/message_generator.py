@@ -1,34 +1,60 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+class MessageGenerator:
+    def generate_email_content(self, lead):
+        """Generate personalized email content for a lead"""
+        try:
+            template = f"""
+Dear {lead.name},
+
+I noticed that {lead.company} has been making waves in the {lead.industry} industry. 
+Your role as {lead.position} must keep you busy with all the exciting developments.
+
+I would love to connect and discuss how we can help {lead.company} achieve even greater success.
+
+Best regards,
+AI Lead Generation Team
+            """
+            return template.strip()
+        except Exception as e:
+            logger.error(f"Error generating email content: {str(e)}")
+            return ""
+
+    def generate_linkedin_message(self, lead):
+        """Generate a LinkedIn message for a lead (max 300 chars)"""
+        try:
+            template = f"""Hi {lead.name}, I noticed your great work at {lead.company}! Would love to connect and discuss how we can help with your {lead.industry} initiatives."""
+            return template[:300]  # LinkedIn message limit
+        except Exception as e:
+            logger.error(f"Error generating LinkedIn message: {str(e)}")
+            return ""
+
+    def generate_custom_message(self, lead, template):
+        """Generate a message using a custom template"""
+        try:
+            return template.format(
+                name=lead.name,
+                company=lead.company,
+                position=lead.position,
+                industry=lead.industry
+            )
+        except Exception as e:
+            logger.error(f"Error generating custom message: {str(e)}")
+            return ""
+
 def generate_messages(lead):
     """
     Generate personalized LinkedIn and email messages for a lead
     """
+    message_generator = MessageGenerator()
+
     # LinkedIn message template
-    linkedin_template = f"""Hi {lead.name},
-
-I noticed your work at {lead.company} in the {lead.industry} industry. Given your role as {lead.position}, I thought you might be interested in our AI-powered lead generation solution that's helping companies like yours streamline their sales process.
-
-Would you be open to a quick chat about how we could help {lead.company} achieve better sales results?
-
-Best regards"""
+    linkedin_template = message_generator.generate_linkedin_message(lead)
 
     # Email template
-    email_template = f"""Dear {lead.name},
-
-I hope this email finds you well. I recently came across {lead.company}'s impressive work in the {lead.industry} space, and I wanted to reach out.
-
-As {lead.position} at {lead.company}, I'm sure you're always looking for ways to optimize your sales process and generate high-quality leads. Our AI-powered lead generation platform has been helping companies:
-
-1. Identify and score potential leads automatically
-2. Generate personalized outreach messages
-3. Track and analyze lead engagement
-
-Given {lead.company}'s growth and position in the market, I believe we could help you achieve even better results.
-
-Would you be interested in a 15-minute call to discuss how we could specifically help {lead.company}?
-
-Looking forward to your response.
-
-Best regards"""
+    email_template = message_generator.generate_email_content(lead)
 
     return {
         'linkedin_message': linkedin_template,

@@ -1,0 +1,23 @@
+[run]
+source = ai_lead_generation
+omit =
+    */tests/*
+    */migrations/*
+    */apps.py
+    */admin.py
+    */wsgi.py
+    */asgi.py
+    manage.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+
+[html]
+directory = coverage_html_report

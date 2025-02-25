@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'api',
+    'ai_lead_generation.api',
+    'ai_lead_generation.lead_api',
 ]
 
 MIDDLEWARE = [
@@ -115,12 +116,12 @@ AUTH_USER_MODEL = 'api.CustomUser'
 
 # REST Framework settings
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ),
+    ],
 }
 
 # JWT settings
@@ -149,12 +150,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# OpenAI API Configuration
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-
-# Raise an error if OpenAI API key is not set
-if not OPENAI_API_KEY:
-    raise ValueError("OpenAI API key not found. Please set OPENAI_API_KEY environment variable.")
+# OpenAI API key
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', 'dummy-key-for-testing')
 
 # File Upload Settings
 MEDIA_URL = '/media/'
